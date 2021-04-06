@@ -133,14 +133,14 @@ TPFR 모듈은 PeerNets [34]와 Graph Attention Layer (GAT) [37]에서 영감을
   - TPFR 모듈의 output은 그러므로 latent code의 스타일과 콘텐츠 부분을 재결합하는 새로운 latent code z_final = [(z_final)_C, (z_out)_S]이다.
 
 ## 4. Experimental setup and Results (정성평가만 함)
-##4.1 Training
+## 4.1 Training
 - dataset[31] : https://github.com/CompVis/adaptive-style-transfer
 - ADAM[18]
 - 200 epochs
 - training 동안 256X256 해상도로 크기가 조정됨.
 - test 할 때, 임의의 크기의 이미지에서 가능하다.
   
-##4.2 Style Transfer
+## 4.2 Style Transfer
 기존의 다른 모델들과는 달리 본 논문의 네트워크는 각각의 스타일에 대한 재훈련이 필요하지 않고, 이전에 본 적 없던 스타일에서도 transfer를 할 수 있다.
 <img src="/img/Arbitrary Image Style Transfer_fig5.PNG"></img><br/>
 - Zero-shot style transfer.
