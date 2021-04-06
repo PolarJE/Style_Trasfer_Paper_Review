@@ -76,50 +76,50 @@ latent code z는 2부분으로 구성된다.
 
 #### Auxiliary decoder.
 latent representaion로부터 이미지를 재구성하며 인코더 모듈을 훈련하기 위해 훈련 동안에만 사용된다. 원본 이미지를 재구성하기 위해 몇 개의 ResNet 블록과 fractionally-strided convolutional layers로 구성된다. loss는 [31, 19]에서 영감을 받아 다음과 같은 부분으로 구성된다. 
-**- A content feature cycle loss : 동일한 콘텐츠를 나타내는 latent codes를 하나로 묶는 손실** <img src="/img/Arbitrary Image Style Transfer_2.PNG"></img><br/>
+**- A content feature cycle loss : 동일한 콘텐츠를 나타내는 latent codes를 하나로 묶는 손실** <br><img src="/img/Arbitrary Image Style Transfer_2.PNG"></img><br/>
 
-**- A metric learning loss : latent representations의 style part 강제 clustering 하는 손실** <img src="/img/Arbitrary Image Style Transfer_3.PNG"></img><br/>
+**- A metric learning loss : latent representations의 style part 강제 clustering 하는 손실** <br><img src="/img/Arbitrary Image Style Transfer_3.PNG"></img><br/>
 
-**- A classical reconstruction loss : autoencoders에서 사용한다. 모델이 inputs을 완벽하게 재구성하도록 학습시키는 손실** 
+**- A classical reconstruction loss : autoencoders에서 사용한다. 모델이 inputs을 완벽하게 재구성하도록 학습시키는 손실** <br>
 <img src="/img/Arbitrary Image Style Transfer_4.PNG"></img><br/>
 
-**-  a latent cycle loss : inputs의 latent codes를 재구성된 이미지(reconstructed images)의 latent codes와 동일하게 만드는 손실. 훈련을 안정화시킴.**
+**-  a latent cycle loss : inputs의 latent codes를 재구성된 이미지(reconstructed images)의 latent codes와 동일하게 만드는 손실. 훈련을 안정화시킴.**<br>
 <img src="/img/Arbitrary Image Style Transfer_5.PNG"></img><br/>
 
 **- total auxiliary decoder loss**
-<img src="/img/Arbitrary Image Style Transfer_6.PNG"></img><br/>
+<br><img src="/img/Arbitrary Image Style Transfer_6.PNG"></img><br/>
 
 #### Main decoder.
 auxiliary decoder의 architecture를 복제하고 Two-stage  Peer-regularized Feature Recombination module (see Section 3.2)의 output을 사용한다.
 main decoder를 훈련하는 동안 encoder는 고정되어 있으며 decoder는 다음 부분으로 구성된 손실 함수를 사용하여 최적화된다.
 
 **1. decoder adversarial loss : P는 real data 분포, Q는 generated(fake) data 분포, C는 discriminator.**
-   <img src="/img/Arbitrary Image Style Transfer_7.PNG"></img><br/>
+   <br><img src="/img/Arbitrary Image Style Transfer_7.PNG"></img><br/>
 
 **2. transfer latent cycle loss : stylization을 시행하기 위해 latent codes의 content 부분을 보존하면서 latent codes의 스타일 부분을 재결합하여 대상(target) 스타일 클래스를 나타내기 위해 사용한다.**
-<img src="/img/Arbitrary Image Style Transfer_8.PNG"></img><br/>
+<br><img src="/img/Arbitrary Image Style Transfer_8.PNG"></img><br/>
 
 **3. the classical reconstruction loss : main decoder가 original inputs을 재구성하는 방법을 배우게 하기 위해 보조 디코더에서도 했던 것처럼 고전적인 재구성 손실을 사용한다.**
-<img src="/img/Arbitrary Image Style Transfer_9.PNG"></img><br/>
+<br><img src="/img/Arbitrary Image Style Transfer_9.PNG"></img><br/>
 
 위의 내용을 종합해서 main decoder loss L_D를 구성하면 다음과 같다. 
-<img src="/img/Arbitrary Image Style Transfer_10.PNG"></img><br/>
+<br><img src="/img/Arbitrary Image Style Transfer_10.PNG"></img><br/>
 
 #### Discriminator 
 channel 차원에 연결된 두 개의 이미지를 받고 N X N의 예측 맵을 생성하는 컨볼루션 네트워크이다. 첫 번째 이미지는 구별(discrimi하는 반면, 두 번째 이미지는 style class의 conditioning 역할을 한다. 두 입력이 동일한 스타일 클래스에서 나오는 경우 출력 예측(prediction)은 이상적인 1이고, 그렇지 않은 경우 0이다.
 **Discriminator loss :**
-<img src="/img/Arbitrary Image Style Transfer_11.PNG"></img><br/>
+<br><img src="/img/Arbitrary Image Style Transfer_11.PNG"></img><br/>
 
 ## 3.2. Two-stage Peer-regularized Feature Recombination (TPFR)
 TPFR 모듈은 PeerNets [34]와 Graph Attention Layer (GAT) [37]에서 영감을 얻어 콘텐츠와 스타일 정보의 분리를 활용하여 latent space에서 스타일 전송을 수행한다. (수식 2 및 3에 의해 적용됨). 피어 정규화 된(Peer-regularized) feature 재조합은 다음 paragrap에 설명 된대로 두 단계로 수행된다.
 - Style recombination. : 
   - z_i와 z_t를 입력으로 받고 동료 그래프(graph of peers)를 유도하기 위해 유클리드 거리를 사용해서 (z_i)_C와 (z_t)_C 사이의 k-NN을 계산한다.<br> 
-  - 그래프 노드에 대한 **Attention 계수(coefficients)** 는 (z_out)_S의 스타일 부분을 가까운 이웃 표현의 convex combination으로 재조합하기 위해 계산되고 사용된다. <br> 
+  - 그래프 노드에 대한 **Attention 계수(coefficients)** 는 (z_out)_S의 스타일 부분을 가까운 이웃 표현의 convex combination(볼록 조합)으로 재조합하기 위해 계산되고 사용된다. <br> 
   - latent code의 콘텐츠 부분은 바뀌는 대신 유지된다.
   - z_out = [(z_i)_C, (z_out)_S].
   - feature map m의 픽셀 (z_m)_C가 주어지면, 모든 peer feature maps n_k의 모든 픽셀의 d차원 feature maps 공간에서 k-NN 그래프가 고려된다.
   - 픽셀에 대한 스타일 부분 (z)_S의 새로운 값은 다음과 같이 표현된다. 
- <img src="/img/Arbitrary Image Style Transfer_12.PNG"></img><br/>
+ <br><img src="/img/Arbitrary Image Style Transfer_12.PNG"></img><br/>
  <img src="/img/Arbitrary Image Style Transfer_13.PNG"></img><br/>
 
 - Content recombination. :
@@ -129,3 +129,29 @@ TPFR 모듈은 PeerNets [34]와 Graph Attention Layer (GAT) [37]에서 영감을
   - TPFR 모듈의 output은 그러므로 latent code의 스타일과 콘텐츠 부분을 재결합하는 새로운 latent code z_final = [(z_final)_C, (z_out)_S]이다.
 
 ## 4. Experimental setup and Results (정성평가만 함)
+##4.1 Training
+- dataset[31] : https://github.com/CompVis/adaptive-style-transfer
+- ADAM[18]
+- 200 epochs
+- training 동안 256X256 해상도로 크기가 조정됨.
+- test 할 때, 임의의 크기의 이미지에서 가능하다.
+  
+##4.2 Style Transfer
+기존의 다른 모델들과는 달리 본 논문의 네트워크는 각각의 스타일에 대한 재훈련이 필요하지 않고, 이전에 본 적 없던 스타일에서도 transfer를 할 수 있다.
+<img src="/img/Arbitrary Image Style Transfer_fig5.PNG"></img><br/>
+- Zero-shot style transfer.
+- 훈련 중에 사용되는 auxiliary decoder는 solutions(해)를 퇴화시키는 것을 방지하기 때문에 중요하다.
+- main decoder로 end-to-end로 직접 encoder를 훈련시키지 않음.
+- latent code를 content와 style로 분리하면 소개한 2단계 style transfer가 가능하며 피카소와 같은 스타일을 위해 객체(objects)의 형태(shape) 변화를 고려하는 것이 중요하다.
+- Two-stage recombination은 다양한 스타일에 대해 더 나은 일반화를 제공한다. content features에 기반한 style 교환만 수행하는 것은 일부 경우에 완전히 실패한다.
+- metric learning 은 style latent space 에서 더 나은 clustering을 적용하고, stylized image에서 몇 가지 중요한 details를 향상시킨다.
+- 결합된 local and global style latent code는 edges 및 brushstrokes의 변화를 적절히 설명하는데 중요하다.
+
+## 5. Conclusions
+- 본 논문은 다양한 한계를 완화하고 도전적인 zero-shot transfer setting에서도 사용할 수 있는 neural style transfer을 위한 새로운 모델을 제안한다.
+- 이는 graph convolutions을 사용하여 latent representation의 스타일 구성요소를 재조합(recombine)하는 **Two-Stage Peer-Regularization Layer**와
+- feature space의 cycle consistency과 결합된 다른 스타일의 분리를 강제하는 **metric learning loss** 덕분이다.
+- degenerate solutions (퇴화된 솔루션?)를 방지하고 생성된 샘플의 충분한 가변성을 적용하기 위해 **auxiliary decoder**가 도입된다.
+- 그 결과 perceptual loss를 계산하기 위해 사전훈련된 모델 없이도 end-to-end 훈련을 할 수 있는 최첨단 방법이며, 따라서 NST에 대한 그러한 features의 신뢰성에 대한 최근의 우려를 완화시킨다.
+- 더 중요한 것은 각 input 및 target 쌍에 대해 디코더 및 인코더가 필요한 많은 경쟁 방법과 달리 **arbitrary styles 간에 전송을 수행하기 위해 단일 인코더와 단일 디코더만 필요로 한다**는 것이다.
+- 이는 사용자가 자신만의 스타일을 정의하는 real-world image generation scenarios에 적용할 수 있게해준다.
