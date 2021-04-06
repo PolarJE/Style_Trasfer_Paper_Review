@@ -10,26 +10,27 @@
 - 모델을 더 간단하게 배포할 수 있고, 추상적이고 예술적인 Neural image generation 시나리오의 문을 열어줌
 
 ## 1. Introduction
-현재의 NST 알고리즘에는 몇가지 한계가 있다.
+현재의 NST 알고리즘에는 몇가지 **한계**가 있다.
   1. the original formulation of Gatys et al은 수행되는 각각의 transfer에 대한 새로운 최적화 프로세스가 필요하므로 실제 시나리오 에서는 비현실적이다. (학습된 스타일에 한해서만 전이함. 현실성 떨어짐) 또한, 일반적으로 분류 작업에서 가져온 사전 훈련된 네트워크에 크게 의존하는데 이는 최적이 아니며 구조 보다는 텍스쳐에 편향되어 있다. 
    
         → 한계를 극복하기 위해 심층 신경망(deep neural networks)은 단일 피드 포워드 단계(single feed forward step)에서 **긴 최적화 절차를 근사화하여 모델을 실시간 처리에 적합하게** 만들도록 제안되었다.
 
   2. 둘째, 신경망을 사용하여[8]의 계산 부담을 극복하는 경우, 여러 스타일을 네트워크 가중치에 인코딩하는 기존 모델의 제한된 용량으로 인해 *원하는 모든 스타일 이미지에 대한 모델 훈련이 필요하다.* 이는 스타일의 개념을 사전에 정의할 수 없고 예제로부터 추론해야 하는 사용 사례에 대한 방법의 적용 가능성을 크게 축소한다. 이 두 번째 제한과 관련하여, 최근 연구는 추가로 입력된 이미지의 스타일을 일반화 할 수 있도록  style과 content를 feature space(latent space)에서 분리하려는 시도를 했다. → AdaIN[11]
   <br>
-  NST를 개선하기 위한 손실함수도 나타남. 
-     - Perceptual Loss[8,15] : pre-trained VGG-19 classifier를 사용해 이미지의 high-level features를 포착하기 때문에 일반적으로 사용됨.<br> → 그러나 [9, Imagenet-trained CNNs are biased towards texture; increasing shape bias improves accuracy and robustness, ICLR, 2019]에서 이의제기함
-     - Cycle-GAN에서 cycle consistent loss 제안 : 입력 이미지와 대상 이미지 간의 일대일 대응이 필요하지 않아서 data annotation의 부담을 덜어줌.
-     - Image style transfer는 image의 스타일이 local 속성(e.g. 객체의 일반적인 모양 등)과 global 속성(e.g. textures 등)으로 표현되기 때문에 어렵다. 과거에 제안된 lower dimensional latent space에서의 정보 인코딩이 매우 유망한 결과를 보여줌. <br> → 따라서 우리는 pixel-wise features의 local 집합과 metric learning을 사용해서 서로 다른 스타일로 분리하여 잠재 공간에서 이 계층을 모델링하는 것을 옹호한다(????). 우리가 아는한 이것은 이전 접근 방식에서 명시적으로 해결되지 않음.
-     - 스타일과 콘텐츠가 완전히 분리된 잘 구조화된 잠재 공간이 있는 경우, 디코더 가중치에 변환(transformation)을 저장할 필요 없이 input과 conditioning style images사이의 잠재 공간에서 스타일 정보를 교환하여 전송(transfer)을 쉽게 수행할 수 있다. 이러한 접근 방식은 feature normalization과 독립적이며 problematic pre-trained models이 필요하지 않음.
-     - 그러나 이미지의 content와 style은 완전하게 분리할 수가 없다. 이미지의 content는 어떤 스타일로 칠해졌는지에 따라 기하학적 변화를 보인다. 
-     - 최근에 Kotovenko et al. [20, A content transformation block for image style transfer]은 모델이 두 단계로 훈련되는 adversarial setting 에서 a content transformer block 을 제안함<br> : 1. 먼저 style transformer block이 최적화된 후 고정되고 content transformer block이 최적화되어 주어진 스타일과 관련된 geometry의 변화를 설명하는 방법을 학습한다. 따라서 style exchange 는 2단계이고 이러한 의존성을 모델링하는 것은 시각적 결과를 드라마틱하게 향상시킨다.
-     - **본 논문은 입력 스타일 이미지에서 전역 및 로컬 스타일 콘텐츠를 재조합할 수 있는 *새로운 기능 정규화 계층(feature regularization layer)을* 도입하여 임의 도메인에서 전송을 허용하고 도전적인 제로샷 스타일 전송 시나리오를 다루기 위해 스타일이 외부적으로 정의된 NST 설정을 다룬다.** <br> → geometric deep learning (GDL)에서 아이디어 빌림&잠재 공간의 feature maps에서 peers의 pixel-wise graph를 모델링하여 달성함 <br>
-  
-     #### Contributions
-     - 잠재 공간에서 스타일과 콘텐츠를 재조합하는 custom graph convolutional layer를 이용한 NST를 위한 최첨단 접근법
-     - 사전 훈련된 모델(예: VGG)이 perceptual loss를 계산할 필요 없이 end-to-end training을 가능하게 하는 기존 loss의 새로운 조합
-     - content 와 style information을 위한 globally-and-locally-combined latent space 구축 및 metric learning을 통해 structure을 도입
+
+NST를 개선하기 위한 **손실함수**도 나타남. 
+- Perceptual Loss[8,15] : pre-trained VGG-19 classifier를 사용해 이미지의 high-level features를 포착하기 때문에 일반적으로 사용됨.<br> → 그러나 [9, Imagenet-trained CNNs are biased towards texture; increasing shape bias improves accuracy and robustness, ICLR, 2019]에서 이의제기함
+- Cycle-GAN에서 cycle consistent loss 제안 : 입력 이미지와 대상 이미지 간의 일대일 대응이 필요하지 않아서 data annotation의 부담을 덜어줌.
+- Image style transfer는 image의 스타일이 local 속성(e.g. 객체의 일반적인 모양 등)과 global 속성(e.g. textures 등)으로 표현되기 때문에 어렵다. 과거에 제안된 lower dimensional latent space에서의 정보 인코딩이 매우 유망한 결과를 보여줌. <br> → 따라서 우리는 pixel-wise features의 local 집합과 metric learning을 사용해서 서로 다른 스타일로 분리하여 잠재 공간에서 이 계층을 모델링하는 것을 옹호한다(????). 우리가 아는한 이것은 이전 접근 방식에서 명시적으로 해결되지 않음.
+- 스타일과 콘텐츠가 완전히 분리된 잘 구조화된 잠재 공간이 있는 경우, 디코더 가중치에 변환(transformation)을 저장할 필요 없이 input과 conditioning style images사이의 잠재 공간에서 스타일 정보를 교환하여 전송(transfer)을 쉽게 수행할 수 있다. 이러한 접근 방식은 feature normalization과 독립적이며 problematic pre-trained models이 필요하지 않음.
+- 그러나 이미지의 content와 style은 완전하게 분리할 수가 없다. 이미지의 content는 어떤 스타일로 칠해졌는지에 따라 기하학적 변화를 보인다. 
+- 최근에 Kotovenko et al. [20, A content transformation block for image style transfer]은 모델이 두 단계로 훈련되는 adversarial setting 에서 a content transformer block 을 제안함<br> : 1. 먼저 style transformer block이 최적화된 후 고정되고 content transformer block이 최적화되어 주어진 스타일과 관련된 geometry의 변화를 설명하는 방법을 학습한다. 따라서 style exchange 는 2단계이고 이러한 의존성을 모델링하는 것은 시각적 결과를 드라마틱하게 향상시킨다.
+- **본 논문은 입력 스타일 이미지에서 전역 및 로컬 스타일 콘텐츠를 재조합할 수 있는 *새로운 기능 정규화 계층(feature regularization layer)을* 도입하여 임의 도메인에서 전송을 허용하고 도전적인 제로샷 스타일 전송 시나리오를 다루기 위해 스타일이 외부적으로 정의된 NST 설정을 다룬다.** <br> → geometric deep learning (GDL)에서 아이디어 빌림&잠재 공간의 feature maps에서 peers의 pixel-wise graph를 모델링하여 달성함 <br>
+
+**Contributions**
+- 잠재 공간에서 스타일과 콘텐츠를 재조합하는 custom graph convolutional layer를 이용한 NST를 위한 최첨단 접근법
+- 사전 훈련된 모델(예: VGG)이 perceptual loss를 계산할 필요 없이 end-to-end training을 가능하게 하는 기존 loss의 새로운 조합
+- content 와 style information을 위한 globally-and-locally-combined latent space 구축 및 metric learning을 통해 structure을 도입
 
 ## 2. Background
 #### Image-Optimization-Based Online Neural Methods.
@@ -56,7 +57,10 @@ Batch Normalization (BN)보다 Style Transfer에 더 적합한 Instance Normaliz
   - Kotovenko et al. [19] : latent space에서 다양한 스타일의 분리를 위해 "fixpoint triplet loss"를 제안. 단일 모델 내에서 두 개의 서로 다른 스타일을 분리하는 방법을 보여줌.
 
 ## 3. Method
-본 논문의 핵심은 semantic content는 보존하면서 input과 target style images을 교환하는 region-based mechanism이다. (StyleSwap [4]과 유사함). 스타일과 콘텐츠 정보를 잘 분리해야 한다. <br> 서로 다른 스타일 간의 분리를 위해 metric learning을 사용한다. 이는 디코더가 유지하고 있는 스타일 종속 정보의 양을 크게 줄인다는 것이 실험적으로 입증됐다. 또한, 특정 스타일에 얽매인 content의 기하학적 변화를 설명하기 위해 style transfer를 2단계 프로세스로 모델링 하고 먼저 스타일 전송을 수행한 다음 콘텐츠의 기하학적인 구조를 수정한다. 이는 **Two-stage Peer-regularized Feature Recombination (TPFR) module**을 사용하여 수행된다.
+- 본 논문의 핵심은 semantic content는 보존하면서 input과 target style images을 교환하는 region-based mechanism이다. (StyleSwap [4]과 유사함).
+- 스타일과 콘텐츠 정보를 잘 분리해야 한다. 
+- 서로 다른 스타일 간의 분리를 위해 metric learning을 사용한다. 이는 디코더가 유지하고 있는 스타일 종속 정보의 양을 크게 줄인다는 것이 실험적으로 입증됐다. 
+- 또한, 특정 스타일에 얽매인 content의 기하학적 변화를 설명하기 위해 style transfer를 2단계 프로세스로 모델링 하고 먼저 스타일 전송을 수행한 다음 콘텐츠의 기하학적인 구조를 수정한다. 이는 **Two-stage Peer-regularized Feature Recombination (TPFR) module**을 사용하여 수행된다.
 
 ## 3.1. Architecture and losses
 <img src="/img/Arbitrary Image Style Transfer.PNG"></img><br/>
