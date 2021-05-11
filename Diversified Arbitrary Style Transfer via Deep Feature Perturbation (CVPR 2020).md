@@ -19,12 +19,12 @@
 
 그램 행렬을 분해하고 화이트닝 및 컬러 변환(WCT)으로 이들의 일치를 분리하는 Li의 연구에서 영감을 받아, 우리는 다양화된 임의 스타일 전송을 달성하기 위해 **심층 특징 섭동(DFP)** 을 제안한다. 우리의 다양성은 직교 노이즈 매트릭스를 사용하여 원래 스타일 정보를 변경하지 않고 DCNN에서 추출한 이미지 기능 맵을 교란함으로써 얻어진다. 즉, 교란된 기능 맵은 서로 다르지만 모두 동일한 Gram 행렬을 가지고 있다. 이해하기 쉽도록 Gram 매트릭스를 스타일 표현으로 간주하고 동일한 Gram 매트릭스를 가진 서로 다른 피쳐 맵이 동일한 스타일별 피쳐 공간을 공유한다고 정의한다.
 
-####본 논문의 주요한 contributions
+#### 본 논문의 주요한 contributions
 - 다양한 arbitrary style transfer를 위해 original style information은 바꾸지 않으면서 orthogonal noise matrix(직교 노이즈 매트릭스)에 의해 deep image feature maps를 perturbing(섭동)하는 deep feature perturbation(DFP)를 사용할 것을 제안한다.
 - 다양한 style transfer tasks에 사용되는 기존 WCT기반 기법에 쉽게 통합될 수 있다.
 
 ## 2. Related Work
-**WCT-based MEthods (참고 : https://jeinalog.tistory.com/23)**
+**WCT-based Mthods (참고 : https://jeinalog.tistory.com/23)**
 - Whitening and Coloring Transforms (WCT) : 공분산까지 맞추는 모델
   - 공분산까지 맞춘다는 것은, 좀 더 Fine tuning이 되도록 하는 것
   - Auto Encoder는 똑같이 학습시킨 후, Whitening & Coloring을 진행
@@ -48,7 +48,7 @@
 - 본 논문에서 제안하는 방법으로 얻은 다양한 perturbed feature maps의 Gram matrices는 완전히 동일할 수 있다.
 
 ## 4. Deep Feature Perturbation(DFP)
-##### Deep Feature Perturbation(DFP) = Li et al. [19] + whitening  and coloring transform (WCT)
+#### Deep Feature Perturbation(DFP) = Li et al. [19] + whitening  and coloring transform (WCT)
 - 다양한 스타일화 된 결과를 생성할 수 있음
 - 다양한 Style transfer는 주로 **perturbed whitening and coloring transform(PWCT)** 에 의해 달성됨
 - PWCT는 2단계로 구성됨 : **1. whitening transform** **2. perturbed coloring transform**
