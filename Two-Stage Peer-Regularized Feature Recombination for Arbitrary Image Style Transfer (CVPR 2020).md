@@ -147,9 +147,10 @@ TPFR 모듈은 PeerNets [34]와 Graph Attention Layer (GAT) [37]에서 영감을
 
 ## 4. Experimental setup and Results (정성평가만 함)
 ## 4.1 Training
-- dataset[31] : https://github.com/CompVis/adaptive-style-transfer
-- ADAM[18]
-- 200 epochs
+- dataset[31] : https://github.com/CompVis/adaptive-style-transfer / 13개의 target style (4,430 paintings) / 관련있는 클래스의 Places365 dataset으로부터 얻은 real photo images(624,077)
+- optimization scheme : ADAM[18]
+- 200 epochs (lr : 4e-4, batch size : 2)
+- After 50 epoch (lr : linearly to zero, batch size : 임의로 지정가능, 논문에선 2로함)
 - training 동안 256X256 해상도로 크기가 조정됨.
 - test 할 때, 임의의 크기의 이미지에서 가능하다.
   
